@@ -40,12 +40,27 @@ def transfer_file_scp(local_path, remote_path, host, port, user, password):
                 print("Ошибки распаковки:")
                 print(stderr.read().decode())
 
-        # Выполнение команд на удаленном сервере
-        while True:
-            command = input("Введите команду для выполнения на удаленном сервере (или 'exit' для выхода): ")
-            if command.lower() == 'exit':
-                break
-            stdin, stdout, stderr = ssh.exec_command(command)
+        # Переход в директорию /home/{user}/Desktop/_cardtest
+        target_dir = f"/home/{user}/Desktop/_cardtest"
+        print(f"Переход в директорию {target_dir}...")
+        stdin, stdout, stderr = ssh.exec_command(f"cd {target_dir} && ls")
+        print(f"Содержимое директории {target_dir}:")
+        print(stdout.read().decode())
+        if stderr.read():
+            print("Ошибки при переходе в директорию:")
+            print(stderr.read().decode())
+
+        # Выполнение команд поочередно
+        commands = [
+            "sudo -s",  # Переход в режим суперпользователя
+            "chmod +x *",  # Даем права на выполнение всем файлам в директории
+            "bash cardtest.sh",  # Запуск скрипта cardtest.sh
+            "bash test.sh"  # Запуск скрипта test.sh
+        ]
+
+        for command in commands:
+            print(f"Выполнение команды: {command}")
+            stdin, stdout, stderr = ssh.exec_command(f"cd {target_dir} && {command}")
             print("Результат выполнения команды:")
             print(stdout.read().decode())
             if stderr.read():

@@ -8,7 +8,7 @@ def transfer_file_scp(local_path, remote_path, host, user, password):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Подключение к удаленному компьютеру
+        # Подключение к удаленному компьютеру (порт всегда 22)
         ssh.connect(host, port=22, username=user, password=password)
 
         # Использование SFTP для передачи файла
@@ -40,30 +40,29 @@ def transfer_file_scp(local_path, remote_path, host, user, password):
                 print("Ошибки распаковки:")
                 print(stderr.read().decode())
 
-        # Переход в директорию /home/{user}/Desktop/_cardtest
-        target_dir = f"/home/{user}/Desktop/_cardtest"
-        print(f"Переход в директорию {target_dir}...")
+            target_dir = f"/home/{user}/Desktop/_cardtest"
+            print(f"Переход в директорию {target_dir}...")
 
-        # Выполнение команд поочередно
-        commands = [
-            "sudo chmod +x *",  # Права на выполнение всех файлав
-            "sudo bash test.sh",  # Запуск скрипта test.sh
-            "sudo bash cardtest.sh"  # Запуск скрипта cardtest.sh
-        ]
+            # Выполнение команд поочередно
+            commands = [
+                "sudo chmod +x *",  # Даем права на выполнение всем файлам в директории
+                "sudo bash cardtest.sh",  # Запуск скрипта cardtest.sh
+                "sudo bash test.sh"  # Запуск скрипта test.sh
+            ]
 
-        for command in commands:
-            print(f"Выполнение команды: {command}")
-            stdin, stdout, stderr = ssh.exec_command(f"cd {target_dir} && {command}")
-            print("Результат выполнения команды:")
-            print(stdout.read().decode())
-            if stderr.read():
-                print("Ошибки выполнения команды:")
-                print(stderr.read().decode())
+            for command in commands:
+                print(f"Выполнение команды: {command}")
+                stdin, stdout, stderr = ssh.exec_command(f"cd {target_dir} && {command}")
+                print("Результат выполнения команды:")
+                print(stdout.read().decode())
+                if stderr.read():
+                    print("Ошибки выполнения команды:")
+                    print(stderr.read().decode())
 
     except Exception as e:
         print(f"Ошибка при передаче файла: {e}")
     finally:
-
+        # Закрытие соединения
         if 'ssh' in locals():
             ssh.close()
 

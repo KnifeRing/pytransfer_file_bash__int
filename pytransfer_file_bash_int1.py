@@ -2,14 +2,14 @@ import paramiko
 import os
 import getpass
 
-def transfer_file_scp(local_path, remote_path, host, port, user, password):
+def transfer_file_scp(local_path, remote_path, host, user, password):
     try:
         # Создание SSH-клиента
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         # Подключение к удаленному компьютеру
-        ssh.connect(host, port=port, username=user, password=password)
+        ssh.connect(host, port=22, username=user, password=password)
 
         # Использование SFTP для передачи файла
         sftp = ssh.open_sftp()
@@ -43,19 +43,12 @@ def transfer_file_scp(local_path, remote_path, host, port, user, password):
         # Переход в директорию /home/{user}/Desktop/_cardtest
         target_dir = f"/home/{user}/Desktop/_cardtest"
         print(f"Переход в директорию {target_dir}...")
-        stdin, stdout, stderr = ssh.exec_command(f"cd {target_dir} && ls")
-        print(f"Содержимое директории {target_dir}:")
-        print(stdout.read().decode())
-        if stderr.read():
-            print("Ошибки при переходе в директорию:")
-            print(stderr.read().decode())
 
         # Выполнение команд поочередно
         commands = [
-            "sudo -s",  # Переход в режим суперпользователя
-            "chmod +x *",  # Даем права на выполнение всем файлам в директории
-            "bash cardtest.sh",  # Запуск скрипта cardtest.sh
-            "bash test.sh"  # Запуск скрипта test.sh
+            "sudo chmod +x *",  # Права на выполнение всех файлав
+            "sudo bash test.sh",  # Запуск скрипта test.sh
+            "sudo bash cardtest.sh"  # Запуск скрипта cardtest.sh
         ]
 
         for command in commands:
@@ -70,7 +63,7 @@ def transfer_file_scp(local_path, remote_path, host, port, user, password):
     except Exception as e:
         print(f"Ошибка при передаче файла: {e}")
     finally:
-        # Закрытие соединения
+
         if 'ssh' in locals():
             ssh.close()
 
@@ -78,7 +71,6 @@ def main():
     # Запрашиваем данные у пользователя
     local_path = input("Введите локальный путь к файлу: ")  # Локальный файл
     host = input("Введите IP-адрес или имя хоста удаленного компьютера: ")  # Хост
-    port = int(input("Введите порт SSH (по умолчанию 22): ") or 22)  # Порт (по умолчанию 22)
     user = input("Введите имя пользователя на удаленном компьютере: ")  # Пользователь
     password = getpass.getpass("Введите пароль пользователя: ")  # Пароль (скрытый ввод)
 
@@ -91,7 +83,7 @@ def main():
         remote_path = f"/home/{user}/Desktop/{file_name}"  # Удаленный путь с сохранением имени и формата
 
         # Передача файла
-        transfer_file_scp(local_path, remote_path, host, port, user, password)
+        transfer_file_scp(local_path, remote_path, host, user, password)
 
     # Ожидание ввода перед закрытием
     input("Нажмите Enter для выхода...")
